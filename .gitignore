@@ -1,0 +1,23 @@
+node_modules/
+.env
+.env.local
+.env.production
+dist/
+build/
+.vercel/
+.supabase/
+*.log
+.DS_Store
+coverage/
+.nyc_output/
+
+# Development
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS files
+Thumbs.db
