@@ -6,22 +6,37 @@
 	import CardContent from '$lib/components/ui/card-content.svelte'
 	import Button from '$lib/components/ui/button.svelte'
 	import { Search, Users, ArrowRight } from 'lucide-svelte'
+	import { goto } from '$app/navigation'
+	
+	export let data
 	
 	async function selectProcess(process: 'recruitment' | 'bench_sales') {
-		// Store process selection in session/localStorage
-		sessionStorage.setItem('selected_process', process)
-		
-		// Set process in backend session
-		await fetch('/api/set-process', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ process })
-		})
-		
-		// Redirect to dashboard
-		window.location.href = '/dashboard'
+		try {
+			// Set process in backend session
+			const response = await fetch('/api/set-process', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ process })
+			})
+			
+			const result = await response.json()
+			
+			if (response.ok && result.success) {
+				// Store process selection in session storage for quick access
+				sessionStorage.setItem('selected_process', process)
+				
+				// Navigate to process-specific dashboard
+				goto(`/${process}/dashboard`)
+			} else {
+				console.error('Failed to set process:', result.error)
+				alert('Failed to set process. Please try again.')
+			}
+		} catch (error) {
+			console.error('Error setting process:', error)
+			alert('An error occurred. Please try again.')
+		}
 	}
 </script>
 
@@ -124,20 +139,9 @@
 		
 		<div class="text-center mt-8">
 			<p class="text-sm text-gray-500">
-				You can switch between processes anytime by logging out and logging back in.
+				You can switch between processes anytime using the navigation menu.
 			</p>
 		</div>
-	</div>
-</div>
-if data.user && import.meta.env.DEV}
-			<div class="mt-8 p-4 bg-gray-100 rounded-lg text-xs text-gray-600">
-				<p><strong>Debug Info:</strong></p>
-				<p>User: {data.user.email}</p>
-				<p>Role: {data.user.role}</p>
-				<p>Available Processes: {data.available_processes.join(', ')}</p>
-				<p>Current Process: {data.user.current_process || 'None'}</p>
-			</div>
-		{/if}
 	</div>
 </div>
 

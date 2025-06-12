@@ -167,3 +167,105 @@ INSERT INTO applications (id, job_id, candidate_id, company_id, status) VALUES
   '01e1f1a1-1111-1111-1111-111111111111',
   'screening'
 );
+
+
+-- Add test company for authentication testing
+INSERT INTO companies (id, name, domain, settings, recruitment_enabled, bench_sales_enabled) VALUES 
+(
+  '99e1f1a1-1111-1111-1111-111111111111',
+  'Acme Staffing',
+  'acme-staffing.com',
+  '{
+    "ai_settings": {
+      "enabled": true,
+      "resume_parsing": true,
+      "candidate_matching": true,
+      "job_suggestions": true
+    },
+    "notification_preferences": {
+      "email_notifications": true,
+      "push_notifications": true,
+      "digest_frequency": "daily"
+    }
+  }',
+  true,
+  true
+);
+
+-- Insert test users for authentication testing
+-- These users will be created in Supabase Auth via the test script
+
+-- Admin user: both processes
+INSERT INTO users (id, email, company_id, role, process_permissions, profile) VALUES 
+(
+  'a1e1f1a1-1111-1111-1111-111111111111',
+  'admin@acme-staffing.com',
+  '99e1f1a1-1111-1111-1111-111111111111',
+  'admin',
+  ARRAY['recruitment', 'bench_sales'],
+  '{
+    "first_name": "Admin",
+    "last_name": "User",
+    "phone": "+1-555-0001"
+  }'
+);
+
+-- Manager user: both processes
+INSERT INTO users (id, email, company_id, role, process_permissions, profile) VALUES 
+(
+  'a2e1f1a1-1111-1111-1111-111111111111',
+  'manager@acme-staffing.com',
+  '99e1f1a1-1111-1111-1111-111111111111',
+  'manager',
+  ARRAY['recruitment', 'bench_sales'],
+  '{
+    "first_name": "Manager",
+    "last_name": "User",
+    "phone": "+1-555-0002"
+  }'
+);
+
+-- Recruiter user: recruitment only
+INSERT INTO users (id, email, company_id, role, process_permissions, profile) VALUES 
+(
+  'a3e1f1a1-1111-1111-1111-111111111111',
+  'recruiter@acme-staffing.com',
+  '99e1f1a1-1111-1111-1111-111111111111',
+  'recruiter',
+  ARRAY['recruitment'],
+  '{
+    "first_name": "Recruiter",
+    "last_name": "User",
+    "phone": "+1-555-0003"
+  }'
+);
+
+-- Bench sales user: bench_sales only
+INSERT INTO users (id, email, company_id, role, process_permissions, profile) VALUES 
+(
+  'a4e1f1a1-1111-1111-1111-111111111111',
+  'bench@acme-staffing.com',
+  '99e1f1a1-1111-1111-1111-111111111111',
+  'viewer',
+  ARRAY['bench_sales'],
+  '{
+    "first_name": "Bench",
+    "last_name": "Sales",
+    "phone": "+1-555-0004"
+  }'
+);
+
+-- No permissions user: empty array
+INSERT INTO users (id, email, company_id, role, process_permissions, profile) VALUES 
+(
+  'a5e1f1a1-1111-1111-1111-111111111111',
+  'noprocess@acme-staffing.com',
+  '99e1f1a1-1111-1111-1111-111111111111',
+  'viewer',
+  ARRAY[]::TEXT[],
+  '{
+    "first_name": "No",
+    "last_name": "Process",
+    "phone": "+1-555-0005"
+  }'
+);

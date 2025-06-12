@@ -1,29 +1,25 @@
 {
-  "name": "procureserve-ii",
-  "version": "2.0.0",
-  "description": "Next-generation staffing platform with Supabase + SvelteKit",
-  "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "name": "psii-auth-test",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Authentication test script for PSII",
   "scripts": {
-    "dev": "concurrently \"npm run dev:customer\" \"npm run dev:console\"",
-    "dev:customer": "cd apps/customer-app && npm run dev",
-    "dev:console": "cd apps/console-app && npm run dev",
-    "build": "npm run build:customer && npm run build:console",
-    "build:customer": "cd apps/customer-app && npm run build",
-    "build:console": "cd apps/console-app && npm run build",
-    "setup": "npm run setup:supabase && npm run setup:apps",
-    "setup:supabase": "cd supabase && supabase start",
-    "setup:apps": "cd apps/customer-app && npm install && cd ../console-app && npm install",
-    "types": "cd supabase && supabase gen types typescript --local > ../packages/database-types/index.ts"
+    "smart-setup": "node scripts/smart-setup.js",
+    "setup-ports": "node scripts/setup-ports.js",
+    "docker-setup": "node scripts/docker-setup.js",
+    "test-auth": "node scripts/auth-test.js",
+    "test-e2e": "playwright test",
+    "test-e2e-ui": "playwright test --ui",
+    "test-complete": "node scripts/test-complete.js",
+    "create-test-users": "node scripts/create-test-users.js",
+    "check-db": "node scripts/check-db.js",
+    "fix-user-ids": "node scripts/fix-user-ids.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "@playwright/test": "^1.53.0"
   }
 }

@@ -21,3 +21,12 @@ coverage/
 
 # OS files
 Thumbs.db
+
+# Playwright end-to-end test artifacts
+playwright-report/
+playwright-report-*/
+.test-results/
+test-results/
+.playwright/
+# Playwright trace archives
+*.trace.zip

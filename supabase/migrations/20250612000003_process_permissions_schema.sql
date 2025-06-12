@@ -5,12 +5,22 @@
 ALTER TABLE users ADD COLUMN IF NOT EXISTS process_permissions TEXT[] DEFAULT '{}';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS current_process TEXT;
 
--- Add constraints for valid process permissions
-ALTER TABLE users ADD CONSTRAINT IF NOT EXISTS valid_process_permissions 
-CHECK (process_permissions <@ ARRAY['recruitment', 'bench_sales']);
+-- Add constraints for valid process permissions (using DO block to handle IF NOT EXISTS)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'valid_process_permissions') THEN
+    ALTER TABLE users ADD CONSTRAINT valid_process_permissions 
+    CHECK (process_permissions <@ ARRAY['recruitment', 'bench_sales']);
+  END IF;
+END $$;
 
-ALTER TABLE users ADD CONSTRAINT IF NOT EXISTS valid_current_process 
-CHECK (current_process IN ('recruitment', 'bench_sales') OR current_process IS NULL);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'valid_current_process') THEN
+    ALTER TABLE users ADD CONSTRAINT valid_current_process 
+    CHECK (current_process IN ('recruitment', 'bench_sales') OR current_process IS NULL);
+  END IF;
+END $$;
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_users_process_permissions ON users USING GIN (process_permissions);
@@ -25,7 +35,7 @@ UPDATE users SET process_permissions = CASE
 END WHERE process_permissions = '{}';
 
 -- Add process permission tracking to activity logs
-INSERT INTO activity_logs (entity_type, entity_id, action, changes, user_id, company_id)
+INSERT INTO activity_logs (entity_type, entity_id, action, details, user_id, company_id)
 SELECT 
   'user',
   id,
@@ -84,7 +94,7 @@ BEGIN
     
     -- Log the process switch
     INSERT INTO activity_logs (
-      entity_type, entity_id, action, changes, user_id, company_id
+      entity_type, entity_id, action, details, user_id, company_id
     ) SELECT 
       'user', user_id, 'process_switched',
       jsonb_build_object('new_process', process),

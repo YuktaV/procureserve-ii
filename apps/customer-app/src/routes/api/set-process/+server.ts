@@ -71,7 +71,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     return json({ 
       success: true,
       process: validatedData.process,
-      redirect_to: `/dashboard/${validatedData.process}`
+      redirect_to: `/${validatedData.process}/dashboard`
     })
 
   } catch (error) {

@@ -1,5 +1,12 @@
 import { fail, redirect } from '@sveltejs/kit'
-import type { Actions } from './$types'
+import type { Actions, PageServerLoad } from './$types'
+
+export const load: PageServerLoad = async ({ url }) => {
+  const message = url.searchParams.get('message')
+  return {
+    message
+  }
+}
 
 export const actions: Actions = {
   login: async ({ request, locals, url }) => {
@@ -26,21 +33,53 @@ export const actions: Actions = {
       })
     }
     
-    // Check if user has dual roles (Recruitment + Bench Sales)
+    // Get user profile and process permissions
     if (data.user) {
       const { data: userProfile } = await locals.supabase
         .from('users')
-        .select('role, company_id, companies!inner(recruitment_enabled, bench_sales_enabled)')
+        .select(`
+          role, 
+          company_id, 
+          process_permissions, 
+          current_process,
+          companies!inner(recruitment_enabled, bench_sales_enabled)
+        `)
         .eq('id', data.user.id)
         .single()
       
-      // If user has both recruitment and bench sales access, redirect to process selection
-      if (userProfile?.companies?.recruitment_enabled && userProfile?.companies?.bench_sales_enabled) {
+      if (!userProfile) {
+        return fail(400, { error: 'User profile not found' })
+      }
+      
+      const permissions = userProfile.process_permissions || []
+      const hasMultipleProcesses = permissions.length > 1
+      
+      // No process permissions - redirect to access denied
+      if (permissions.length === 0) {
+        throw redirect(303, '/access-denied')
+      }
+      
+      // Multiple processes - redirect to process selection
+      if (hasMultipleProcesses) {
         throw redirect(303, '/select-process')
       }
+      
+      // Single process - set current process and redirect to specific dashboard
+      const singleProcess = permissions[0]
+      
+      // Update user's current process if not set
+      if (!userProfile.current_process) {
+        await locals.supabase
+          .from('users')
+          .update({ current_process: singleProcess })
+          .eq('id', data.user.id)
+      }
+      
+      // Redirect to process-specific dashboard
+      throw redirect(303, `/${singleProcess}/dashboard`)
     }
     
-    // Redirect based on user type and configuration
+    // Fallback redirect
     const redirectTo = url.searchParams.get('redirectTo') ?? '/dashboard'
     throw redirect(303, redirectTo)
   }
