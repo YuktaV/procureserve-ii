@@ -56,22 +56,26 @@
   
   async function loginAs(email: string) {
     if (!browser) return
-    
+
     loading = email
-    
+
     try {
       const formData = new FormData()
       formData.set('email', email)
       formData.set('password', 'password123')
       formData.set('userType', 'business')
-      
+
       const response = await fetch('/login?/login', {
         method: 'POST',
         body: formData
       })
-      
-      if (response.ok) {
-        window.location.href = '/dashboard'
+
+      if (response.redirected) {
+        // Follow the redirect from the login action
+        window.location.href = response.url
+      } else if (response.ok) {
+        // Fallback - reload to trigger auth flow
+        window.location.reload()
       } else {
         console.error('Login failed')
         loading = null

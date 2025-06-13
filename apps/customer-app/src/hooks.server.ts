@@ -31,14 +31,20 @@ export const handle: Handle = async ({ event, resolve }) => {
   
   // Set locals for downstream usage
   event.locals.user = user
-  event.locals.session = user ? { user } : null
+  event.locals.session = user ? {
+    user,
+    access_token: '',
+    refresh_token: '',
+    expires_in: 0,
+    token_type: 'bearer'
+  } : null
   
   // Protected routes logic
   const isAuthPage = url.pathname.startsWith('/login') || 
                      url.pathname.startsWith('/register') || 
                      url.pathname.startsWith('/activate') || 
                      url.pathname.startsWith('/reset-password')
-  const isPublicPage = ['/', '/about', '/contact'].includes(url.pathname)
+  const isPublicPage = ['/', '/about', '/contact', '/test-users'].includes(url.pathname)
   const isApiRoute = url.pathname.startsWith('/api/')
   const isProcessRoute = url.pathname.startsWith('/recruitment/') || url.pathname.startsWith('/bench-sales/')
   const isSelectProcessPage = url.pathname === '/select-process'

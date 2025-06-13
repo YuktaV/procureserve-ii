@@ -21,7 +21,7 @@ export const load: PageLoad = async ({ parent }) => {
     }
 
     // Check if user has recruitment access
-    if (!user.process_permissions.includes('recruitment')) {
+    if (!user.process_permissions?.includes('recruitment')) {
       throw redirect(303, '/access-denied')
     }
 
@@ -39,29 +39,29 @@ export const load: PageLoad = async ({ parent }) => {
       supabase
         .from('jobs')
         .select('id, title, status, created_at')
-        .eq('company_id', user.company_id)
+        .eq('company_id', user.company_id || '')
         .order('created_at', { ascending: false })
         .limit(5),
-      
-      // Recent candidates  
+
+      // Recent candidates
       supabase
         .from('candidates')
         .select('id, name, email, status, created_at')
-        .eq('company_id', user.company_id)
+        .eq('company_id', user.company_id || '')
         .order('created_at', { ascending: false })
         .limit(5),
-      
+
       // Recent applications
       supabase
         .from('applications')
         .select(`
-          id, 
-          status, 
+          id,
+          status,
           created_at,
           jobs(title),
           candidates(name)
         `)
-        .eq('company_id', user.company_id)
+        .eq('company_id', user.company_id || '')
         .order('created_at', { ascending: false })
         .limit(5)
     ])

@@ -35,9 +35,9 @@ export const load: PageLoad = async ({ url, parent }) => {
 
     // Get latest review if any
     const { data: latestReview } = await supabase
-      .from('company_reviews')
+      .from('registration_reviews')
       .select('*')
-      .eq('company_id', user.company_id)
+      .eq('company_id', user.company_id || '')
       .order('reviewed_at', { ascending: false })
       .limit(1)
       .single()

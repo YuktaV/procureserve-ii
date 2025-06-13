@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "vite build",
-    "dev": "vite dev --port 3000",
+    "dev": "vite dev --port 3004",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
@@ -28,7 +28,8 @@
     "clsx": "^2.1.1",
     "lucide-svelte": "^0.445.0",
     "shadcn-svelte": "^1.0.2",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "zod": "^3.25.63"
   },
   "type": "module"
 }

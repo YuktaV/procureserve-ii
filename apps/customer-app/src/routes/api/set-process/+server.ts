@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
 
     // Check if user has permission for the requested process
-    if (!user.process_permissions.includes(validatedData.process)) {
+    if (!user.process_permissions?.includes(validatedData.process)) {
       return json({ 
         error: 'Access denied', 
         message: `You don't have access to ${validatedData.process}` 

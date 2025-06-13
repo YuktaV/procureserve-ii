@@ -21,7 +21,7 @@ export const load: PageLoad = async ({ parent }) => {
     }
 
     // Check if user has bench sales access
-    if (!user.process_permissions.includes('bench_sales')) {
+    if (!user.process_permissions?.includes('bench_sales')) {
       throw redirect(303, '/access-denied')
     }
 
@@ -39,7 +39,7 @@ export const load: PageLoad = async ({ parent }) => {
       supabase
         .from('candidates')
         .select('id, name, email, status, skills, created_at')
-        .eq('company_id', user.company_id)
+        .eq('company_id', user.company_id || '')
         .eq('status', 'bench') // Assuming 'bench' status for available candidates
         .order('created_at', { ascending: false })
         .limit(5),
@@ -48,7 +48,7 @@ export const load: PageLoad = async ({ parent }) => {
       supabase
         .from('jobs')
         .select('id, title, status, employment_type, created_at')
-        .eq('company_id', user.company_id)
+        .eq('company_id', user.company_id || '')
         .order('created_at', { ascending: false })
         .limit(5),
       
@@ -62,7 +62,7 @@ export const load: PageLoad = async ({ parent }) => {
           jobs(title, employment_type),
           candidates(name)
         `)
-        .eq('company_id', user.company_id)
+        .eq('company_id', user.company_id || '')
         .eq('status', 'placed') // Assuming 'placed' status for successful placements
         .order('created_at', { ascending: false })
         .limit(5)

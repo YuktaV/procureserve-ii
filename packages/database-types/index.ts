@@ -727,8 +727,10 @@ export type Database = {
         Row: {
           company_id: string | null
           created_at: string | null
+          current_process: string | null
           email: string
           id: string
+          process_permissions: string[] | null
           profile: Json | null
           role: string | null
           updated_at: string | null
@@ -736,8 +738,10 @@ export type Database = {
         Insert: {
           company_id?: string | null
           created_at?: string | null
+          current_process?: string | null
           email: string
           id?: string
+          process_permissions?: string[] | null
           profile?: Json | null
           role?: string | null
           updated_at?: string | null
@@ -745,8 +749,10 @@ export type Database = {
         Update: {
           company_id?: string | null
           created_at?: string | null
+          current_process?: string | null
           email?: string
           id?: string
+          process_permissions?: string[] | null
           profile?: Json | null
           role?: string | null
           updated_at?: string | null
