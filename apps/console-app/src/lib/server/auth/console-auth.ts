@@ -1,4 +1,4 @@
-import { createSupabaseAdminClient } from '../supabase'
+import { createSupabaseAdminClient } from '../supabase-admin'
 import type { 
   ConsoleUser, 
   ConsoleRole, 
@@ -7,7 +7,7 @@ import type {
   LoginCredentials,
   AuthResponse 
 } from '$types/auth.types'
-import { nanoid } from 'nanoid'
+import { randomUUID } from 'crypto'
 
 const DEBUG_AUTH = process.env.NODE_ENV === 'development'
 
@@ -129,15 +129,8 @@ export class ConsoleAuthManager {
   async getConsoleUser(userId: string): Promise<ConsoleUser | null> {
     try {
       const { data: userData, error: userError } = await this.supabase
-        .from('console_users')
-        .select(`
-          *,
-          console_user_permissions (
-            resource,
-            actions,
-            company_id
-          )
-        `)
+        .from('console_users' as any)
+        .select('*')
         .eq('id', userId)
         .eq('is_active', true)
         .single()
@@ -147,23 +140,30 @@ export class ConsoleAuthManager {
         return null
       }
 
-      const permissions: Permission[] = userData.console_user_permissions.map((p: any) => ({
+      // Get permissions separately to avoid type issues
+      const { data: permissionsData } = await this.supabase
+        .from('console_user_permissions' as any)
+        .select('resource, actions, company_id')
+        .eq('user_id', userId)
+
+      const permissions: Permission[] = permissionsData?.map((p: any) => ({
         resource: p.resource,
         actions: p.actions,
         company_id: p.company_id
-      }))
+      })) || []
 
+      const user = userData as any
       return {
-        id: userData.id,
-        email: userData.email,
-        role: userData.role,
-        company_ids: userData.company_ids || [],
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        company_ids: user.company_ids || [],
         permissions,
-        last_login: userData.last_login,
-        mfa_enabled: userData.mfa_enabled || false,
-        created_at: userData.created_at,
-        updated_at: userData.updated_at,
-        is_active: userData.is_active
+        last_login: user.last_login,
+        mfa_enabled: user.mfa_enabled || false,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        is_active: user.is_active
       }
 
     } catch (error) {
@@ -217,9 +217,9 @@ export class ConsoleAuthManager {
   async logSecurityEvent(event: Omit<SecurityEvent, 'id'>): Promise<void> {
     try {
       const { error } = await this.supabase
-        .from('console_security_events')
+        .from('console_security_events' as any)
         .insert({
-          id: nanoid(),
+          id: randomUUID(),
           ...event,
           timestamp: event.timestamp || new Date().toISOString()
         })
@@ -235,14 +235,37 @@ export class ConsoleAuthManager {
   /**
    * Update user's last login timestamp
    */
-  private async updateLastLogin(userId: string): Promise<void> {
+  async updateLastLogin(userId: string): Promise<void> {
     try {
       await this.supabase
-        .from('console_users')
+        .from('console_users' as any)
         .update({ last_login: new Date().toISOString() })
         .eq('id', userId)
     } catch (error) {
       log('Error updating last login', error)
+    }
+  }
+
+  /**
+   * Get console user by email address
+   */
+  async getConsoleUserByEmail(email: string): Promise<ConsoleUser | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from('console_users' as any)
+        .select('*')
+        .eq('email', email)
+        .single()
+
+      if (error) {
+        log('Error fetching console user by email', error)
+        return null
+      }
+
+      return data as any
+    } catch (error) {
+      log('Exception fetching console user by email', error)
+      return null
     }
   }
 
@@ -259,7 +282,7 @@ export class ConsoleAuthManager {
     try {
       // Check if user already exists
       const { data: existingUser } = await this.supabase
-        .from('console_users')
+        .from('console_users' as any)
         .select('id')
         .eq('email', email)
         .single()
@@ -269,12 +292,12 @@ export class ConsoleAuthManager {
       }
 
       // Create invitation
-      const invitationId = nanoid()
+      const invitationId = randomUUID()
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiry
 
       const { error: inviteError } = await this.supabase
-        .from('console_user_invitations')
+        .from('console_user_invitations' as any)
         .insert({
           id: invitationId,
           email,

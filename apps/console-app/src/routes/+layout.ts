@@ -6,7 +6,6 @@ export const load = async ({ data, depends }) => {
   depends('supabase:auth')
 
   return {
-    supabase,
     user: data.user,
     consoleUser: data.consoleUser
   }

@@ -4,6 +4,7 @@
   import { invalidate } from '$app/navigation'
   import type { LayoutData } from './$types'
   import { page } from '$app/stores'
+  import { supabase } from '$lib/supabase'
   import Header from '$components/layout/Header.svelte'
   import Sidebar from '$components/layout/Sidebar.svelte'
   import Toast from '$components/shared/Toast.svelte'
@@ -11,7 +12,7 @@
 
   export let data: LayoutData
 
-  $: ({ supabase, user, consoleUser } = data)
+  $: ({ user, consoleUser } = data)
 
   // Set up auth state change listener
   onMount(() => {
@@ -34,12 +35,12 @@
   <title>ProcureServe Console</title>
 </svelte:head>
 
-{#if showConsoleLayout}
+{#if showConsoleLayout && consoleUser}
   <!-- Console Layout -->
   <div class="h-screen flex overflow-hidden bg-background">
     <!-- Sidebar -->
     <Sidebar {consoleUser} />
-    
+
     <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Header -->

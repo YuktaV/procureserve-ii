@@ -52,25 +52,53 @@
   // Get breadcrumbs
   $: breadcrumbs = getBreadcrumbs($page.url.pathname)
 
-  function getBreadcrumbs(pathname: string): Array<{label: string; href?: string}> {
+  // Define the breadcrumb item type
+  type BreadcrumbItem = {
+    label: string;
+    href?: string;
+  }
+
+  function getBreadcrumbs(pathname: string): Array<BreadcrumbItem> {
     const segments = pathname.split('/').filter(Boolean)
-    const crumbs = [{ label: 'Console', href: '/dashboard' }]
-    
+    const crumbs: BreadcrumbItem[] = [{ label: 'Console', href: '/dashboard' }]
+
     let currentPath = ''
     for (const segment of segments) {
       currentPath += `/${segment}`
-      
+
       let label = segment.charAt(0).toUpperCase() + segment.slice(1)
       if (segment === 'audit-logs') label = 'Audit Logs'
       if (segment === 'enum-management') label = 'Enum Management'
-      
-      crumbs.push({ 
+
+      crumbs.push({
         label,
         href: segments.indexOf(segment) === segments.length - 1 ? undefined : currentPath
       })
     }
-    
+
     return crumbs
+  }
+
+  // Handle logout
+  async function handleLogout() {
+    try {
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST'
+      })
+
+      if (response.ok) {
+        // Redirect will be handled by the server
+        window.location.href = '/login'
+      } else {
+        console.error('Logout failed')
+        // Fallback redirect
+        window.location.href = '/login'
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Fallback redirect
+      window.location.href = '/login'
+    }
   }
 </script>
 
@@ -172,7 +200,7 @@
             <button
               on:click={() => {
                 showUserMenu = false
-                // Handle logout
+                handleLogout()
               }}
               class="block w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors"
             >

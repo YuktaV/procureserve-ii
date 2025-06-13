@@ -1,0 +1,52 @@
+{
+	"/": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/api/auth/signout": [
+		"src/routes/api/auth/signout/+server.ts"
+	],
+	"/api/enums": [
+		"src/routes/api/enums/+server.ts"
+	],
+	"/api/enums/[id]": [
+		"src/routes/api/enums/[id]/+server.ts"
+	],
+	"/dashboard": [
+		"src/routes/dashboard/+page.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/enums": [
+		"src/routes/enums/+page.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/enums/create": [
+		"src/routes/enums/create/+page.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/enums/[id]": [
+		"src/routes/enums/[id]/+page.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/enums/[id]/edit": [
+		"src/routes/enums/[id]/edit/+page.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(auth)/forgot-password": [
+		"src/routes/(auth)/forgot-password/+page.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(auth)/login": [
+		"src/routes/(auth)/login/+page.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	]
+}

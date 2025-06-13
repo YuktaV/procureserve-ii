@@ -256,7 +256,7 @@ INSERT INTO users (id, email, company_id, role, process_permissions, profile) VA
 );
 
 -- No permissions user: empty array
-INSERT INTO users (id, email, company_id, role, process_permissions, profile) VALUES 
+INSERT INTO users (id, email, company_id, role, process_permissions, profile) VALUES
 (
   'a5e1f1a1-1111-1111-1111-111111111111',
   'noprocess@acme-staffing.com',
@@ -269,3 +269,25 @@ INSERT INTO users (id, email, company_id, role, process_permissions, profile) VA
     "phone": "+1-555-0005"
   }'
 );
+
+-- Console app sample data (ProcureServe internal operations team)
+-- Super admin for ProcureServe platform management
+INSERT INTO console_users (id, email, role, company_ids, is_active) VALUES
+    ('550e8400-e29b-41d4-a716-446655440001', 'admin@procureserve.com', 'super_admin', ARRAY[]::TEXT[], TRUE),
+    ('550e8400-e29b-41d4-a716-446655440002', 'support@procureserve.com', 'company_admin', ARRAY[]::TEXT[], TRUE),
+    ('550e8400-e29b-41d4-a716-446655440003', 'sales@procureserve.com', 'company_manager', ARRAY[]::TEXT[], TRUE)
+ON CONFLICT (email) DO NOTHING;
+
+-- Sample permissions for ProcureServe internal team
+-- Super admin has all permissions globally (no specific permissions needed)
+-- Support team permissions
+INSERT INTO console_user_permissions (user_id, resource, actions, company_id) VALUES
+    ('550e8400-e29b-41d4-a716-446655440002', 'companies', ARRAY['read', 'update'], NULL),
+    ('550e8400-e29b-41d4-a716-446655440002', 'users', ARRAY['read', 'create', 'update'], NULL),
+    ('550e8400-e29b-41d4-a716-446655440002', 'settings', ARRAY['read', 'update'], NULL),
+    ('550e8400-e29b-41d4-a716-446655440002', 'audit_logs', ARRAY['read'], NULL),
+    -- Sales team permissions
+    ('550e8400-e29b-41d4-a716-446655440003', 'companies', ARRAY['read'], NULL),
+    ('550e8400-e29b-41d4-a716-446655440003', 'analytics', ARRAY['read'], NULL),
+    ('550e8400-e29b-41d4-a716-446655440003', 'audit_logs', ARRAY['read'], NULL)
+ON CONFLICT (user_id, resource, company_id) DO NOTHING;

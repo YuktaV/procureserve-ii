@@ -18,39 +18,27 @@ export function createSupabaseServerClient(cookies: {
     PUBLIC_SUPABASE_URL,
     PUBLIC_SUPABASE_ANON_KEY,
     {
-      cookies,
-      cookieOptions: {
-        name: 'console-auth-token',
-        lifetime: 60 * 60 * 8, // 8 hours
-        domain: undefined,
-        path: '/',
-        sameSite: 'lax',
-        httpOnly: true,
-        secure: !isBrowser() || location.protocol === 'https:'
+      cookies: {
+        get(name: string) {
+          return cookies.get(name)
+        },
+        set(name: string, value: string, options?: any) {
+          cookies.set(name, value, {
+            ...options,
+            path: '/',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+          })
+        },
+        remove(name: string, options?: any) {
+          cookies.remove(name, {
+            ...options,
+            path: '/'
+          })
+        }
       }
     }
   )
 }
 
-// Admin client for elevated operations (server-side only)
-export function createSupabaseAdminClient() {
-  if (isBrowser()) {
-    throw new Error('Admin client should only be used server-side')
-  }
-  
-  const { SUPABASE_SERVICE_ROLE_KEY } = process.env
-  if (!SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
-  }
-
-  return createServerClient<Database>(
-    PUBLIC_SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false
-      }
-    }
-  )
-}

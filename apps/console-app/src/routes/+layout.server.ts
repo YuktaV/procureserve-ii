@@ -18,7 +18,6 @@ export const load = async ({ cookies }) => {
   }
 
   return {
-    supabase,
     user,
     consoleUser
   }

@@ -140,10 +140,10 @@ ALTER TABLE enum_operations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Console users can view enum operations for their companies" ON enum_operations
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM console_users cu 
+            SELECT 1 FROM console_users cu
             WHERE cu.id = auth.uid() AND (
-                cu.role = 'super_admin' OR 
-                company_id = ANY(cu.company_ids)
+                cu.role = 'super_admin' OR
+                company_id::TEXT = ANY(cu.company_ids)
             )
         )
     );
@@ -230,15 +230,7 @@ CREATE TRIGGER update_console_users_updated_at BEFORE UPDATE ON console_users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Sample console users (for development)
+-- Note: Sample data with company references will be added via seed.sql after companies are created
 INSERT INTO console_users (id, email, role, company_ids, is_active) VALUES
-    ('550e8400-e29b-41d4-a716-446655440000', 'admin@procureserve.com', 'super_admin', ARRAY[]::TEXT[], TRUE),
-    ('550e8400-e29b-41d4-a716-446655440001', 'admin@acme-staffing.com', 'company_admin', ARRAY['550e8400-e29b-41d4-a716-446655440100'], TRUE)
+    ('550e8400-e29b-41d4-a716-446655440000', 'admin@procureserve.com', 'super_admin', ARRAY[]::TEXT[], TRUE)
 ON CONFLICT (email) DO NOTHING;
-
--- Sample permissions for company admin
-INSERT INTO console_user_permissions (user_id, resource, actions, company_id) VALUES
-    ('550e8400-e29b-41d4-a716-446655440001', 'enums', ARRAY['create', 'read', 'update', 'delete'], '550e8400-e29b-41d4-a716-446655440100'),
-    ('550e8400-e29b-41d4-a716-446655440001', 'users', ARRAY['read', 'create', 'update'], '550e8400-e29b-41d4-a716-446655440100'),
-    ('550e8400-e29b-41d4-a716-446655440001', 'settings', ARRAY['read', 'update'], '550e8400-e29b-41d4-a716-446655440100'),
-    ('550e8400-e29b-41d4-a716-446655440001', 'audit_logs', ARRAY['read'], '550e8400-e29b-41d4-a716-446655440100')
-ON CONFLICT (user_id, resource, company_id) DO NOTHING;

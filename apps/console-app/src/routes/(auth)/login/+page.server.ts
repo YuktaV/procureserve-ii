@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit'
 import { ConsoleAuthManager } from '$lib/server/auth/console-auth'
+import { createSupabaseServerClient } from '$lib/supabase'
 import type { Actions } from './$types'
 
 export const actions = {
@@ -25,66 +26,105 @@ export const actions = {
       })
     }
 
+    // Create Supabase client for authentication
+    const supabase = createSupabaseServerClient({
+      get: (name: string) => cookies.get(name),
+      set: (name: string, value: string, options: any) => cookies.set(name, value, options),
+      remove: (name: string, options: any) => cookies.delete(name, options)
+    })
+
     const authManager = new ConsoleAuthManager()
-    
+
     try {
-      const result = await authManager.authenticateUser({
+      // First, authenticate with Supabase Auth directly
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       })
 
-      if (!result.success) {
+      if (authError || !authData.user) {
         // Log failed login attempt with IP
         const clientIP = getClientAddress()
         await authManager.logSecurityEvent({
           event_type: 'login_failed',
           user_id: '',
           user_email: email,
-          user_role: 'company_manager',
+          user_role: 'unknown',
           success: false,
-          error_message: result.error || 'Authentication failed',
+          error_message: authError?.message || 'Authentication failed',
           ip_address: clientIP,
           timestamp: new Date().toISOString()
         })
 
+        // Provide more helpful error message in development
+        const isDev = process.env.NODE_ENV === 'development'
+        const errorMessage = isDev
+          ? `Invalid email or password. For development, try: admin@procureserve.com with password 'admin123'`
+          : 'Invalid email or password'
+
         return fail(401, {
           email,
-          error: result.error || 'Authentication failed'
+          error: errorMessage
         })
       }
 
-      if (!result.session) {
-        return fail(500, {
+      // Check if user exists in console_users table
+      const consoleUser = await authManager.getConsoleUser(authData.user.id)
+
+      if (!consoleUser) {
+        // Sign out the user since they don't have console access
+        await supabase.auth.signOut()
+
+        const clientIP = getClientAddress()
+        await authManager.logSecurityEvent({
+          event_type: 'login_failed',
+          user_id: authData.user.id,
+          user_email: email,
+          user_role: 'unknown',
+          success: false,
+          error_message: 'User not found in console_users table',
+          ip_address: clientIP,
+          timestamp: new Date().toISOString()
+        })
+
+        const isDev = process.env.NODE_ENV === 'development'
+        const errorMessage = isDev
+          ? 'Access denied - this email is not registered as a console user. Use admin@procureserve.com, support@procureserve.com, or sales@procureserve.com'
+          : 'Access denied - not a console user'
+
+        return fail(401, {
           email,
-          error: 'Failed to create session'
+          error: errorMessage
         })
       }
 
-      // Set secure session cookie
-      const maxAge = remember ? 60 * 60 * 24 * 30 : 60 * 60 * 8 // 30 days or 8 hours
-      
-      cookies.set('console-auth-token', result.session.access_token, {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge
-      })
+      if (!consoleUser.is_active) {
+        // Sign out inactive user
+        await supabase.auth.signOut()
+
+        return fail(401, {
+          email,
+          error: 'Account is inactive'
+        })
+      }
+
+      // Update last login
+      await authManager.updateLastLogin(consoleUser.id)
 
       // Log successful login
       const clientIP = getClientAddress()
       await authManager.logSecurityEvent({
         event_type: 'login',
-        user_id: result.user!.id,
-        user_email: result.user!.email,
-        user_role: result.user!.role,
+        user_id: consoleUser.id,
+        user_email: consoleUser.email,
+        user_role: consoleUser.role,
         success: true,
         ip_address: clientIP,
         metadata: { remember_me: remember },
         timestamp: new Date().toISOString()
       })
 
-      // Redirect to dashboard
+      // Redirect to dashboard - Supabase session is automatically handled
       throw redirect(303, '/dashboard')
 
     } catch (error) {

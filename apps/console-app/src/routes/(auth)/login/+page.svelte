@@ -3,13 +3,17 @@
   import { page } from '$app/stores'
   import { Eye, EyeOff, Shield, AlertCircle } from 'lucide-svelte'
   import { onMount } from 'svelte'
+  import type { PageData, ActionData } from './$types'
+
+  export let data: PageData
+  export let form: ActionData
 
   let showPassword = false
   let loading = false
   let email = ''
   let password = ''
 
-  $: errorMessage = $page.url.searchParams.get('error')
+  $: errorMessage = $page.url.searchParams.get('error') || form?.error
   $: successMessage = $page.url.searchParams.get('message')
 
   function togglePasswordVisibility() {
@@ -38,6 +42,19 @@
       <p class="mt-2 text-sm text-muted-foreground">
         Sign in to your administrative account
       </p>
+      {#if $page.url.hostname === 'localhost' || $page.url.hostname === '127.0.0.1'}
+        <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+          <p class="text-xs text-blue-700 dark:text-blue-300 font-medium">Development Mode</p>
+          <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+            Use any of these test accounts with password: <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded">admin123</code>
+          </p>
+          <div class="text-xs text-blue-600 dark:text-blue-400 mt-1 space-y-1">
+            <div>• admin@procureserve.com (Super Admin)</div>
+            <div>• support@procureserve.com (Company Admin)</div>
+            <div>• sales@procureserve.com (Company Manager)</div>
+          </div>
+        </div>
+      {/if}
     </div>
 
     <!-- Error/Success Messages -->
