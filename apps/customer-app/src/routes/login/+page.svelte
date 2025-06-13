@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms'
 	import { goto } from '$app/navigation'
+	import { toastSuccess, toastError } from '$lib'
 	import Card from '$lib/components/ui/card.svelte'
 	import CardHeader from '$lib/components/ui/card-header.svelte'
 	import CardTitle from '$lib/components/ui/card-title.svelte'
@@ -78,7 +79,11 @@
 					return async ({ result, update }) => {
 						loading = false
 						if (result.type === 'redirect') {
+							toastSuccess('Welcome back!', 'You have been successfully signed in.')
 							goto(result.location)
+						} else if (result.type === 'failure') {
+							toastError('Login failed', result.data?.error || 'Please check your credentials and try again.')
+							await update()
 						} else {
 							await update()
 						}

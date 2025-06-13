@@ -4,32 +4,63 @@
 	import CardTitle from '$lib/components/ui/card-title.svelte'
 	import CardContent from '$lib/components/ui/card-content.svelte'
 	import Button from '$lib/components/ui/button.svelte'
+	import Badge from '$lib/components/ui/badge.svelte'
+	import EmptyState from '$lib/components/ui/empty-state.svelte'
 	import { 
 		Users, 
-		Briefcase, 
-		DollarSign, 
+		Building2, 
+		FolderOpen, 
 		TrendingUp,
-		Search,
+		UserPlus,
 		Plus,
-		Building
+		Search,
+		DollarSign
 	} from 'lucide-svelte'
 	import { goto } from '$app/navigation'
 	
 	export let data
 	
-	// Mock bench sales dashboard data
-	const stats = [
-		{ label: 'Available Consultants', value: '12', icon: Users, color: 'text-green-600' },
-		{ label: 'Active Projects', value: '8', icon: Briefcase, color: 'text-blue-600' },
-		{ label: 'Revenue This Month', value: '$45K', icon: DollarSign, color: 'text-purple-600' },
-		{ label: 'Placement Rate', value: '85%', icon: TrendingUp, color: 'text-orange-600' }
-	]
+	// Calculate stats from real data
+	$: availableConsultants = data.stats.consultants.find(c => c.status === 'available')?.count || 0
+	$: placedConsultants = data.stats.consultants.find(c => c.status === 'placed')?.count || 0
+	$: totalConsultants = data.stats.consultants.reduce((sum, consultant) => sum + consultant.count, 0)
+	$: activeClients = data.stats.clients.find(c => c.status === 'active')?.count || 0
+	$: totalClients = data.stats.clients.reduce((sum, client) => sum + client.count, 0)
+	$: activeProjects = data.stats.projects.find(p => p.status === 'active')?.count || 0
+	$: totalProjects = data.stats.projects.reduce((sum, project) => sum + project.count, 0)
+	$: activePlacements = data.stats.placements.find(p => p.status === 'active')?.count || 0
 	
 	const quickActions = [
-		{ label: 'Find Opportunities', icon: Search, action: () => goto('/opportunities'), color: 'bg-blue-600' },
-		{ label: 'Add Consultant', icon: Plus, action: () => goto('/consultants/new'), color: 'bg-green-600' },
-		{ label: 'New Client', icon: Building, action: () => goto('/clients/new'), color: 'bg-purple-600' }
+		{ label: 'Add Consultant', icon: UserPlus, action: () => goto('/bench-sales/consultants/new'), color: 'bg-blue-600' },
+		{ label: 'New Project', icon: Plus, action: () => goto('/bench-sales/projects/new'), color: 'bg-green-600' },
+		{ label: 'Find Matches', icon: Search, action: () => goto('/bench-sales/matches'), color: 'bg-purple-600' }
 	]
+	
+	function getStatusColor(status: string): string {
+		const colors = {
+			'available': 'bg-green-100 text-green-800',
+			'placed': 'bg-blue-100 text-blue-800',
+			'unavailable': 'bg-gray-100 text-gray-800',
+			'active': 'bg-green-100 text-green-800',
+			'inactive': 'bg-gray-100 text-gray-800',
+			'prospect': 'bg-yellow-100 text-yellow-800',
+			'draft': 'bg-gray-100 text-gray-800',
+			'completed': 'bg-blue-100 text-blue-800'
+		}
+		return colors[status] || 'bg-gray-100 text-gray-800'
+	}
+	
+	function formatDate(dateString: string): string {
+		const date = new Date(dateString)
+		const now = new Date()
+		const diffTime = Math.abs(now.getTime() - date.getTime())
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+		
+		if (diffDays === 1) return 'Today'
+		if (diffDays === 2) return 'Yesterday'
+		if (diffDays <= 7) return `${diffDays - 1} days ago`
+		return date.toLocaleDateString()
+	}
 </script>
 
 <svelte:head>
@@ -41,7 +72,7 @@
 	<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 		<div>
 			<h1 class="text-2xl font-bold text-gray-900">Bench Sales Dashboard</h1>
-			<p class="text-gray-600">Manage consultants, projects, and client opportunities</p>
+			<p class="text-gray-600">Manage consultants, clients, and project placements</p>
 		</div>
 		<div class="text-sm text-gray-500">
 			Welcome back, {data.user.profile?.first_name || 'Sales Rep'}
@@ -50,21 +81,65 @@
 	
 	<!-- Stats Cards -->
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-		{#each stats as stat}
-			<Card>
-				<CardContent class="p-6">
-					<div class="flex items-center justify-between">
-						<div>
-							<p class="text-sm font-medium text-gray-600">{stat.label}</p>
-							<p class="text-2xl font-bold text-gray-900">{stat.value}</p>
-						</div>
-						<div class={`p-3 rounded-full bg-gray-100 ${stat.color}`}>
-							<svelte:component this={stat.icon} class="w-6 h-6" />
-						</div>
+		<Card>
+			<CardContent class="p-6">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm font-medium text-gray-600">Available Consultants</p>
+						<p class="text-2xl font-bold text-gray-900">{availableConsultants}</p>
+						<p class="text-xs text-gray-500">of {totalConsultants} total</p>
 					</div>
-				</CardContent>
-			</Card>
-		{/each}
+					<div class="p-3 rounded-full bg-gray-100 text-green-600">
+						<Users class="w-6 h-6" />
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+		
+		<Card>
+			<CardContent class="p-6">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm font-medium text-gray-600">Active Clients</p>
+						<p class="text-2xl font-bold text-gray-900">{activeClients}</p>
+						<p class="text-xs text-gray-500">of {totalClients} total</p>
+					</div>
+					<div class="p-3 rounded-full bg-gray-100 text-blue-600">
+						<Building2 class="w-6 h-6" />
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+		
+		<Card>
+			<CardContent class="p-6">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm font-medium text-gray-600">Active Projects</p>
+						<p class="text-2xl font-bold text-gray-900">{activeProjects}</p>
+						<p class="text-xs text-gray-500">of {totalProjects} total</p>
+					</div>
+					<div class="p-3 rounded-full bg-gray-100 text-purple-600">
+						<FolderOpen class="w-6 h-6" />
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+		
+		<Card>
+			<CardContent class="p-6">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm font-medium text-gray-600">Active Placements</p>
+						<p class="text-2xl font-bold text-gray-900">{activePlacements}</p>
+						<p class="text-xs text-gray-500">current revenue streams</p>
+					</div>
+					<div class="p-3 rounded-full bg-gray-100 text-orange-600">
+						<DollarSign class="w-6 h-6" />
+					</div>
+				</div>
+			</CardContent>
+		</Card>
 	</div>
 	
 	<!-- Quick Actions -->
@@ -92,25 +167,32 @@
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 		<Card>
 			<CardHeader>
-				<CardTitle>Available Consultants</CardTitle>
+				<CardTitle>Recent Projects</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<div class="space-y-3">
-					<div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-						<div>
-							<p class="font-medium">Rajesh Kumar - Java Developer</p>
-							<p class="text-sm text-gray-600">Available since 3 days</p>
-						</div>
-						<span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Available</span>
+				{#if data.recentProjects.length > 0}
+					<div class="space-y-3">
+						{#each data.recentProjects as project}
+							<div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+								<div>
+									<p class="font-medium">{project.title}</p>
+									<p class="text-sm text-gray-600">{project.clients?.name} • Created {formatDate(project.created_at)}</p>
+								</div>
+								<Badge class={getStatusColor(project.status)}>
+									{project.status}
+								</Badge>
+							</div>
+						{/each}
 					</div>
-					<div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-						<div>
-							<p class="font-medium">Priya Sharma - React Developer</p>
-							<p class="text-sm text-gray-600">Available since 1 week</p>
-						</div>
-						<span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Available</span>
-					</div>
-				</div>
+				{:else}
+					<EmptyState 
+						icon={FolderOpen}
+						title="No projects yet"
+						description="Create your first client project to get started"
+						actionText="Create Project"
+						on:action={() => goto('/bench-sales/projects/new')}
+					/>
+				{/if}
 			</CardContent>
 		</Card>
 		
@@ -119,22 +201,28 @@
 				<CardTitle>Recent Placements</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<div class="space-y-3">
-					<div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-						<div>
-							<p class="font-medium">Amit Patel → Tech Corp</p>
-							<p class="text-sm text-gray-600">Placed today</p>
-						</div>
-						<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Active</span>
+				{#if data.recentPlacements.length > 0}
+					<div class="space-y-3">
+						{#each data.recentPlacements as placement}
+							<div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+								<div>
+									<p class="font-medium">{placement.consultants?.first_name} {placement.consultants?.last_name} → {placement.projects?.title}</p>
+									<p class="text-sm text-gray-600">Started {formatDate(placement.start_date)}</p>
+								</div>
+								<Badge class={getStatusColor(placement.status)}>
+									{placement.status}
+								</Badge>
+							</div>
+						{/each}
 					</div>
-					<div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-						<div>
-							<p class="font-medium">Sanya Gupta → Startup Inc</p>
-							<p class="text-sm text-gray-600">Placed yesterday</p>
-						</div>
-						<span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Negotiating</span>
-					</div>
-				</div>
+				{:else}
+					<EmptyState 
+						icon={DollarSign}
+						title="No placements yet"
+						description="Placements will appear here when consultants are assigned to projects"
+						compact={true}
+					/>
+				{/if}
 			</CardContent>
 		</Card>
 	</div>

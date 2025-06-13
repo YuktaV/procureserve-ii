@@ -188,10 +188,14 @@
 							</div>
 						</div>
 					</div>
-					<div class="mt-4">
-						<Button variant="outline" disabled>
+					<div class="mt-4 space-y-2">
+						<Button variant="outline" on:click={() => goto('/settings/company')}>
 							<Settings class="w-4 h-4 mr-2" />
-							Advanced Settings (Coming Soon)
+							Company Settings
+						</Button>
+						<Button variant="outline" disabled>
+							<User class="w-4 h-4 mr-2" />
+							User Management (Coming Soon)
 						</Button>
 					</div>
 				</CardContent>
