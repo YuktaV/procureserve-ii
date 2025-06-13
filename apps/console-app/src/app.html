@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" class="h-full">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="ProcureServe Console - Administrative Dashboard" />
+		
+		<!-- Security Headers -->
+		<meta http-equiv="X-Content-Type-Options" content="nosniff" />
+		<meta http-equiv="X-Frame-Options" content="DENY" />
+		<meta name="referrer" content="strict-origin-when-cross-origin" />
+		
+		<!-- Theme Support -->
+		<script>
+			// Prevent flash of unstyled content
+			if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+				document.documentElement.classList.add('dark')
+			}
+		</script>
+		
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover" class="h-full bg-background text-foreground">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
