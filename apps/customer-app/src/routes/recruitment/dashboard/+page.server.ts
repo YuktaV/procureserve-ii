@@ -86,14 +86,14 @@ export const load: PageServerLoad = async ({ locals }) => {
   ])
   
   // Process jobs stats
-  const jobsStats = {}
+  const jobsStats: Record<string, number> = {}
   jobsResult.data?.forEach(job => {
     jobsStats[job.status] = (jobsStats[job.status] || 0) + 1
   })
   
   // Process candidates stats (unique candidates only)
   const uniqueCandidates = new Set()
-  const candidatesStats = {}
+  const candidatesStats: Record<string, number> = {}
   candidatesResult.data?.forEach(app => {
     if (app.candidates && !uniqueCandidates.has(app.candidates.id)) {
       uniqueCandidates.add(app.candidates.id)
@@ -103,7 +103,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   })
   
   // Process applications stats
-  const applicationsStats = {}
+  const applicationsStats: Record<string, number> = {}
   applicationsResult.data?.forEach(app => {
     applicationsStats[app.status] = (applicationsStats[app.status] || 0) + 1
   })

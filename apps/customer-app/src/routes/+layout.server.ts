@@ -7,7 +7,7 @@ export const load = async ({ locals, depends }) => {
   if (locals.session?.user) {
     const { data } = await locals.supabase
       .from('users')
-      .select('process_permissions, current_process, role')
+      .select('process_permissions, current_process, role, profile')
       .eq('id', locals.session.user.id)
       .single()
     

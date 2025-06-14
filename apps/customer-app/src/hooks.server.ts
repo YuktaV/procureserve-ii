@@ -22,10 +22,10 @@ export const handle: Handle = async ({ event, resolve }) => {
                      url.pathname.startsWith('/register') || 
                      url.pathname.startsWith('/activate') || 
                      url.pathname.startsWith('/reset-password')
-  const isPublicPage = ['/', '/about', '/contact', '/test-users'].includes(url.pathname)
+  const isPublicPage = ['/', '/about', '/contact', '/test-users', '/select-process', '/debug-auth', '/logout'].includes(url.pathname)
   const isApiRoute = url.pathname.startsWith('/api/')
   const isProcessRoute = url.pathname.startsWith('/recruitment/') || url.pathname.startsWith('/bench-sales/')
-  const isSelectProcessPage = url.pathname === '/select-process'
+  const isSelectProcessPage = url.pathname === '/select-process' || url.pathname.startsWith('/select-process/')
   const isAccessDeniedPage = url.pathname === '/access-denied'
   
   // SECURITY FIX: Use getUser() instead of getSession() for server-side validation
@@ -40,25 +40,26 @@ export const handle: Handle = async ({ event, resolve }) => {
   
   log('User from getUser():', user ? { id: user.id, email: user.email } : null)
   
-  // SECURITY FIX: Check if user is a console user and prevent access to customer app
+  // FIXED: Check for valid customer app user instead of blocking console users
+  let customerUser = null;
   if (user) {
-    const { data: consoleUser, error: consoleError } = await event.locals.supabase
-      .from('console_users')
-      .select('id, role')
+    const { data: userData, error: userDataError } = await event.locals.supabase
+      .from('users')
+      .select('*')
       .eq('id', user.id)
       .single()
     
-    if (!consoleError && consoleUser) {
-      log('Console user detected, denying access to customer app:', consoleUser)
-      // Console users should not access customer app - redirect to access denied
-      if (!isPublicPage && !isApiRoute) {
-        throw redirect(303, '/access-denied')
-      }
+    if (!userDataError && userData) {
+      customerUser = userData;
+      log('Customer user found:', { id: userData.id, email: userData.email, role: userData.role })
+    } else {
+      log('No customer user record found for authenticated user')
     }
   }
   
   // Set locals for downstream usage
   event.locals.user = user
+  event.locals.customerUser = customerUser
   event.locals.session = user ? {
     user,
     access_token: '',
@@ -79,8 +80,8 @@ export const handle: Handle = async ({ event, resolve }) => {
   
   // Redirect authenticated users away from auth pages (except API routes)
   if (user && isAuthPage && !isApiRoute) {
-    log('Redirecting authenticated user away from auth page to dashboard')
-    throw redirect(303, '/dashboard')
+    log('Redirecting authenticated user away from auth page to select-process')
+    throw redirect(303, '/select-process')
   }
   
   // Redirect unauthenticated users to login (except for public pages and API routes)
@@ -89,28 +90,25 @@ export const handle: Handle = async ({ event, resolve }) => {
     throw redirect(303, '/login')
   }
   
+  // For authenticated users without customer profile, redirect to access denied or onboarding
+  if (user && !customerUser && !isAuthPage && !isPublicPage && !isApiRoute && !isAccessDeniedPage) {
+    log('Authenticated user without customer profile, redirecting to access denied')
+    throw redirect(303, '/access-denied')
+  }
+  
   // For authenticated users accessing process routes, verify permissions
-  if (user && isProcessRoute) {
+  if (user && customerUser && isProcessRoute) {
     log('Checking process permissions for authenticated user')
     
-    // Get user process permissions
-    const { data: userData, error: userDataError } = await event.locals.supabase
-      .from('users')
-      .select('process_permissions')
-      .eq('id', user.id)
-      .single()
-    
-    if (userDataError) {
-      log('Error fetching user permissions:', userDataError)
-      throw redirect(303, '/access-denied')
-    }
-    
+    // Get user process permissions from customer user data
     const processFromUrl = url.pathname.startsWith('/recruitment/') ? 'recruitment' : 'bench_sales'
-    const hasPermission = userData?.process_permissions?.includes(processFromUrl)
+    // FIXED: Access permissions from profile.process_permissions, not direct process_permissions
+    const userPermissions = customerUser?.profile?.process_permissions || customerUser?.process_permissions || []
+    const hasPermission = userPermissions.includes(processFromUrl)
     
     log('Process permission check:', {
       processFromUrl,
-      userPermissions: userData?.process_permissions,
+      userPermissions: userPermissions,
       hasPermission
     })
     

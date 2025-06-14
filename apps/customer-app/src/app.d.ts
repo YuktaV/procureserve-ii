@@ -7,6 +7,7 @@ declare global {
       supabase: SupabaseClient<Database>
       session: Session | null
       user: User | null
+      customerUser: Database['public']['Tables']['users']['Row'] | null
     }
     interface PageData {
       session: Session | null

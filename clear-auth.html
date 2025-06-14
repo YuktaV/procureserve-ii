@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Auth Session</title>
+</head>
+<body>
+    <h1>Clear Authentication Session</h1>
+    <button onclick="clearAuth()">Clear Auth Session</button>
+    <div id="status"></div>
+
+    <script>
+        function clearAuth() {
+            // Clear all cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            document.getElementById('status').innerHTML = 'Auth session cleared! You can now close this tab and go to <a href="http://localhost:3005/login">http://localhost:3005/login</a>';
+        }
+    </script>
+</body>
+</html>

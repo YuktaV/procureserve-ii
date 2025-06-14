@@ -20,8 +20,11 @@ export const load: PageLoad = async ({ parent }) => {
       throw redirect(303, '/auth/login')
     }
 
+    // FIXED: Access permissions from profile.process_permissions, not direct process_permissions
+    const permissions = user.profile?.process_permissions || user.process_permissions || []
+
     // Check if user has bench sales access
-    if (!user.process_permissions?.includes('bench_sales')) {
+    if (!permissions.includes('bench_sales')) {
       throw redirect(303, '/access-denied')
     }
 

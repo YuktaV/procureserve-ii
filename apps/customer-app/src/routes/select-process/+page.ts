@@ -32,9 +32,12 @@ export const load: PageLoad = async ({ parent }) => {
       throw redirect(303, '/auth/login')
     }
 
+    // FIXED: Access permissions from profile.process_permissions, not direct process_permissions
+    const permissions = user.profile?.process_permissions || user.process_permissions || []
+
     const enhancedUser: EnhancedUser = {
       ...user,
-      process_permissions: user.process_permissions || [],
+      process_permissions: permissions,
       current_process: user.current_process || undefined
     }
 
@@ -48,7 +51,7 @@ export const load: PageLoad = async ({ parent }) => {
       // No process access - redirect to access denied
       throw redirect(303, '/access-denied')
     }
-    
+
     if (enhancedUser.has_single_process) {
       // Single process user - redirect directly to their process
       const process = enhancedUser.process_permissions[0]

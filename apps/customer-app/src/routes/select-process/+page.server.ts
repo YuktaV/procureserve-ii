@@ -14,6 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     .from('users')
     .select(`
       process_permissions,
+      profile,
       current_process,
       role,
       companies!inner(name, recruitment_enabled, bench_sales_enabled)
@@ -25,7 +26,8 @@ export const load: PageServerLoad = async ({ locals }) => {
     throw redirect(303, '/access-denied')
   }
   
-  const permissions = userProfile.process_permissions || []
+  // FIXED: Access permissions from profile.process_permissions, not direct process_permissions
+  const permissions = userProfile.profile?.process_permissions || userProfile.process_permissions || []
   
   // No permissions - redirect to access denied
   if (permissions.length === 0) {
@@ -78,11 +80,12 @@ export const actions: Actions = {
     // Verify user has permission for selected process
     const { data: userProfile } = await locals.supabase
       .from('users')
-      .select('process_permissions')
+      .select('process_permissions, profile')
       .eq('id', user.id)
       .single()
     
-    const permissions = userProfile?.process_permissions || []
+    // FIXED: Access permissions from profile.process_permissions, not direct process_permissions
+    const permissions = userProfile?.profile?.process_permissions || userProfile?.process_permissions || []
     if (!permissions.includes(selectedProcess)) {
       return { error: 'You do not have permission for this process' }
     }

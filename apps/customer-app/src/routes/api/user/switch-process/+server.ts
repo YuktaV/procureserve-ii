@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   // Get user's current permissions
   const { data: userProfile, error: profileError } = await locals.supabase
     .from('users')
-    .select('process_permissions')
+    .select('process_permissions, profile')
     .eq('id', user.id)
     .single()
   
@@ -27,8 +27,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     return error(400, 'User profile not found')
   }
   
-  // Verify user has permission for the requested process
-  const permissions = userProfile.process_permissions || []
+  // FIXED: Access permissions from profile.process_permissions, not direct process_permissions
+  const permissions = userProfile.profile?.process_permissions || userProfile.process_permissions || []
   if (!permissions.includes(process)) {
     return error(403, 'You do not have permission for this process')
   }

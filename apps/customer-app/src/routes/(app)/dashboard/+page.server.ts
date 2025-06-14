@@ -92,7 +92,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   })
   
   if (businessUser) {
-    const permissions = businessUser.process_permissions || []
+    // FIXED: Access permissions from profile.process_permissions, not direct process_permissions
+    const permissions = businessUser.profile?.process_permissions || businessUser.process_permissions || []
     const currentProcess = businessUser.current_process
     
     log('Processing business user:', { permissions, currentProcess })
