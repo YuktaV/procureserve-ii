@@ -10,20 +10,28 @@ export const nodes = [
 	() => import('./nodes/6'),
 	() => import('./nodes/7'),
 	() => import('./nodes/8'),
-	() => import('./nodes/9')
+	() => import('./nodes/9'),
+	() => import('./nodes/10'),
+	() => import('./nodes/11'),
+	() => import('./nodes/12'),
+	() => import('./nodes/13')
 ];
 
 export const server_loads = [0];
 
 export const dictionary = {
 		"/": [2],
-		"/dashboard": [~5],
-		"/enums": [~6],
-		"/enums/create": [~9],
-		"/enums/[id]": [~7],
-		"/enums/[id]/edit": [~8],
+		"/audit-logs": [5],
+		"/companies": [6],
+		"/dashboard": [~7],
+		"/enums": [~8],
+		"/enums/create": [~11],
+		"/enums/[id]": [~9],
+		"/enums/[id]/edit": [~10],
 		"/(auth)/forgot-password": [~3],
-		"/(auth)/login": [~4]
+		"/(auth)/login": [~4],
+		"/settings": [12],
+		"/users": [13]
 	};
 
 export const hooks = {

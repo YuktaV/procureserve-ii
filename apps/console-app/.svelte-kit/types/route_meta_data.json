@@ -14,6 +14,14 @@
 	"/api/enums/[id]": [
 		"src/routes/api/enums/[id]/+server.ts"
 	],
+	"/audit-logs": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/companies": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
 	"/dashboard": [
 		"src/routes/dashboard/+page.server.ts",
 		"src/routes/+layout.ts",
@@ -46,6 +54,14 @@
 	],
 	"/(auth)/login": [
 		"src/routes/(auth)/login/+page.server.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/settings": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/users": [
 		"src/routes/+layout.ts",
 		"src/routes/+layout.server.ts"
 	]

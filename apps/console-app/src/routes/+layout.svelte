@@ -9,10 +9,28 @@
   import Sidebar from '$components/layout/Sidebar.svelte'
   import Toast from '$components/shared/Toast.svelte'
   import { toastStore } from '$stores/toast'
+  import { writable } from 'svelte/store'
 
   export let data: LayoutData
 
   $: ({ user, consoleUser } = data)
+
+  const sidebarOpen = writable(true)
+  let mounted = false
+
+  onMount(() => {
+    mounted = true
+    // Default to open on desktop
+    if (window.innerWidth >= 1024) {
+      sidebarOpen.set(true)
+    } else {
+      sidebarOpen.set(false)
+    }
+  })
+
+  function toggleSidebar() {
+    sidebarOpen.update(state => !state)
+  }
 
   // Set up auth state change listener
   onMount(() => {
@@ -36,19 +54,19 @@
 </svelte:head>
 
 {#if showConsoleLayout && consoleUser}
-  <!-- Console Layout -->
-  <div class="h-screen flex overflow-hidden bg-background">
+  <!-- Console Layout with New Sidebar -->
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900" data-sidebar="true">
     <!-- Sidebar -->
-    <Sidebar {consoleUser} />
+    <Sidebar {consoleUser} bind:sidebarOpen={$sidebarOpen} />
 
-    <!-- Main content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Main Content -->
+    <div class="flex flex-col min-h-screen transition-all duration-300 ease-in-out">
       <!-- Header -->
-      <Header {consoleUser} />
+      <Header {consoleUser} sidebarOpen={$sidebarOpen} {toggleSidebar} />
       
       <!-- Page content -->
-      <main class="flex-1 overflow-auto console-main console-scrollbar">
-        <div class="p-6">
+      <main class="flex-1 overflow-x-hidden">
+        <div class="p-4 lg:p-6">
           <slot />
         </div>
       </main>
@@ -71,5 +89,29 @@
   
   :global(body) {
     overscroll-behavior: none;
+    overflow-x: hidden;
+  }
+
+  /* Custom scrollbar for sidebar */
+  :global([data-sidebar="true"] .overflow-y-auto) {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  }
+  
+  :global([data-sidebar="true"] .overflow-y-auto::-webkit-scrollbar) {
+    width: 4px;
+  }
+  
+  :global([data-sidebar="true"] .overflow-y-auto::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+  
+  :global([data-sidebar="true"] .overflow-y-auto::-webkit-scrollbar-thumb) {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 2px;
+  }
+  
+  :global([data-sidebar="true"] .overflow-y-auto::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(156, 163, 175, 0.7);
   }
 </style>

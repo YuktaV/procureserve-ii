@@ -52,7 +52,6 @@ export const actions: Actions = {
       }
       
       const permissions = userProfile.process_permissions || []
-      const hasMultipleProcesses = permissions.length > 1
       
       // No process permissions - redirect to access denied
       if (permissions.length === 0) {
@@ -60,11 +59,11 @@ export const actions: Actions = {
       }
       
       // Multiple processes - redirect to process selection
-      if (hasMultipleProcesses) {
+      if (permissions.length > 1) {
         throw redirect(303, '/select-process')
       }
       
-      // Single process - set current process and redirect to specific dashboard
+      // Single process - set current process and redirect to dashboard
       const singleProcess = permissions[0]
       
       // Update user's current process if not set
@@ -75,11 +74,11 @@ export const actions: Actions = {
           .eq('id', data.user.id)
       }
       
-      // Redirect to process-specific dashboard
-      throw redirect(303, `/${singleProcess}/dashboard`)
+      // FIXED: Redirect to protected dashboard route consistently
+      throw redirect(303, '/dashboard')
     }
     
-    // Fallback redirect
+    // Fallback redirect to protected dashboard
     const redirectTo = url.searchParams.get('redirectTo') ?? '/dashboard'
     throw redirect(303, redirectTo)
   }

@@ -29,6 +29,23 @@ export const handle: Handle = async ({ event, resolve }) => {
   
   log('User from getUser():', user ? { id: user.id, email: user.email } : null)
   
+  // SECURITY FIX: Check if user is a console user and prevent access to customer app
+  if (user) {
+    const { data: consoleUser, error: consoleError } = await event.locals.supabase
+      .from('console_users')
+      .select('id, role')
+      .eq('id', user.id)
+      .single()
+    
+    if (!consoleError && consoleUser) {
+      log('Console user detected, denying access to customer app:', consoleUser)
+      // Console users should not access customer app - redirect to access denied
+      if (!isPublicPage && !isApiRoute) {
+        throw redirect(303, '/access-denied')
+      }
+    }
+  }
+  
   // Set locals for downstream usage
   event.locals.user = user
   event.locals.session = user ? {

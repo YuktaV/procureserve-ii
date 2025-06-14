@@ -238,7 +238,7 @@
               <option value="">Any Usage</option>
               <option value="high">High Usage (>100)</option>
               <option value="medium">Medium Usage (10-100)</option>
-              <option value="low">Low Usage (<10)</option>
+              <option value="low">Low Usage (&lt;10)</option>
             </select>
           </div>
         </div>
