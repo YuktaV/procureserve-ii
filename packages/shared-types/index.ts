@@ -422,3 +422,79 @@ export interface ProcessContext {
   can_switch_process: boolean
   switch_url?: string
 }
+
+// User Management Types for Phase 6
+export interface UserInvitation {
+  id: string
+  company_id: string
+  email: string
+  role: UserRole
+  process_permissions: ProcessType[]
+  business_unit_id?: string
+  invited_by: string
+  invitation_token: string
+  expires_at: string
+  accepted_at?: string
+  created_at: string
+}
+
+export interface BusinessUnit {
+  id: string
+  company_id: string
+  name: string
+  description?: string
+  parent_id?: string
+  manager_id?: string
+  settings: Record<string, any>
+  created_at: string
+  updated_at: string
+}
+
+export interface UserManagementUser extends EnhancedUser {
+  business_unit_id?: string
+  last_login_at?: string
+  is_active: boolean
+  invited_by?: string
+  accepted_invitation_at?: string
+  business_unit?: BusinessUnit
+  invited_by_user?: Pick<User, 'id' | 'email' | 'profile'>
+}
+
+export interface UserInviteForm {
+  email: string
+  role: UserRole
+  process_permissions: ProcessType[]
+  business_unit_id?: string
+  message?: string
+}
+
+export interface UserEditForm {
+  role: UserRole
+  process_permissions: ProcessType[]
+  business_unit_id?: string
+  is_active: boolean
+}
+
+export interface UserSearchFilters {
+  search?: string
+  role?: UserRole[]
+  process_permissions?: ProcessType[]
+  business_unit_id?: string
+  is_active?: boolean
+  invited_status?: 'pending' | 'accepted'
+}
+
+export interface CompanyAuditLog {
+  id: string
+  company_id: string
+  performed_by: string
+  action_type: string
+  target_user_id?: string
+  old_values?: Record<string, any>
+  new_values?: Record<string, any>
+  ip_address?: string
+  user_agent?: string
+  created_at: string
+  performed_by_user?: Pick<User, 'id' | 'email' | 'profile'>
+  target_user?: Pick<User, 'id' | 'email' | 'profile'>
+}

@@ -193,10 +193,17 @@
 							<Settings class="w-4 h-4 mr-2" />
 							Company Settings
 						</Button>
-						<Button variant="outline" disabled>
-							<User class="w-4 h-4 mr-2" />
-							User Management (Coming Soon)
-						</Button>
+						{#if data.user.role === 'admin'}
+							<Button variant="outline" on:click={() => goto('/settings/users')}>
+								<User class="w-4 h-4 mr-2" />
+								User Management
+							</Button>
+						{:else if data.user.role === 'manager'}
+							<Button variant="outline" on:click={() => goto('/settings/users')}>
+								<User class="w-4 h-4 mr-2" />
+								View Users
+							</Button>
+						{/if}
 					</div>
 				</CardContent>
 			</Card>
