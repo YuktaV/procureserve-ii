@@ -1,14 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import Card from '$lib/components/ui/card.svelte'
-  import CardHeader from '$lib/components/ui/card-header.svelte'
-  import CardTitle from '$lib/components/ui/card-title.svelte'
-  import CardContent from '$lib/components/ui/card-content.svelte'
   import { Building2, Plus, Search, Filter } from 'lucide-svelte'
 
   export let data
 
-  let companies = []
+  let companies: any[] = []
   let searchQuery = ''
   let loading = true
 

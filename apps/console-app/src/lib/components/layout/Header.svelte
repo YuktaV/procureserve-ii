@@ -1,12 +1,10 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import type { ConsoleUser } from '$types'
-  import { Bell, Search, Sun, Moon, ChevronDown, Menu } from 'lucide-svelte'
+  import { Bell, Search, Sun, Moon, ChevronDown } from 'lucide-svelte'
   import { writable } from 'svelte/store'
 
   export let consoleUser: ConsoleUser
-  export let sidebarOpen = true
-  export let toggleSidebar: (() => void) | undefined = undefined
 
   const darkMode = writable(false)
   let showUserMenu = false
@@ -26,18 +24,6 @@
     })
   }
 
-  // Initialize dark mode from localStorage
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const isDark = stored === 'dark' || (!stored && prefersDark)
-    
-    darkMode.set(isDark)
-    if (isDark) {
-      document.documentElement.classList.add('dark')
-    }
-  }
-
   // Get page title based on current route
   $: pageTitle = getPageTitle($page.url.pathname)
 
@@ -51,19 +37,11 @@
     return 'Console'
   }
 
-  // Handle logout
   async function handleLogout() {
     try {
-      const response = await fetch('/api/auth/signout', {
-        method: 'POST'
-      })
-
-      if (response.ok) {
-        window.location.href = '/login'
-      } else {
-        console.error('Logout failed')
-        window.location.href = '/login'
-      }
+      const { supabase } = await import('$lib/supabase')
+      await supabase.auth.signOut()
+      window.location.href = '/login'
     } catch (error) {
       console.error('Logout error:', error)
       window.location.href = '/login'
@@ -71,24 +49,11 @@
   }
 </script>
 
-<header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-6 transition-all duration-300 ease-in-out
-  {sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}">
+<header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6">
   <div class="flex items-center justify-between h-full">
-    <!-- Left side - Menu button and title -->
-    <div class="flex items-center gap-4">
-      <!-- Mobile menu button -->
-      <button
-        on:click={toggleSidebar}
-        class="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        aria-label="Toggle sidebar"
-      >
-        <Menu class="w-5 h-5" />
-      </button>
-      
-      <div>
-        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{pageTitle}</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Console Administration</p>
-      </div>
+    <!-- Left side - Title -->
+    <div>
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{pageTitle}</h1>
     </div>
 
     <!-- Right side - Actions -->
@@ -122,7 +87,6 @@
         aria-label="Notifications"
       >
         <Bell class="w-5 h-5 text-gray-600 dark:text-gray-300" />
-        <!-- Notification badge -->
         <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
       </button>
 
@@ -149,21 +113,6 @@
               </p>
             </div>
             <div class="p-2">
-              <a
-                href="/settings/profile"
-                class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                on:click={() => showUserMenu = false}
-              >
-                Profile Settings
-              </a>
-              <a
-                href="/settings/security"
-                class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                on:click={() => showUserMenu = false}
-              >
-                Security Settings
-              </a>
-              <hr class="my-2 border-gray-200 dark:border-gray-700" />
               <button
                 on:click={() => {
                   showUserMenu = false

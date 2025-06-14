@@ -17,6 +17,17 @@ export const handle: Handle = async ({ event, resolve }) => {
   // Create Supabase client for server-side operations
   event.locals.supabase = createSupabaseLoadClient(event.fetch, event)
   
+  // Define route types first
+  const isAuthPage = url.pathname.startsWith('/login') || 
+                     url.pathname.startsWith('/register') || 
+                     url.pathname.startsWith('/activate') || 
+                     url.pathname.startsWith('/reset-password')
+  const isPublicPage = ['/', '/about', '/contact', '/test-users'].includes(url.pathname)
+  const isApiRoute = url.pathname.startsWith('/api/')
+  const isProcessRoute = url.pathname.startsWith('/recruitment/') || url.pathname.startsWith('/bench-sales/')
+  const isSelectProcessPage = url.pathname === '/select-process'
+  const isAccessDeniedPage = url.pathname === '/access-denied'
+  
   // SECURITY FIX: Use getUser() instead of getSession() for server-side validation
   const {
     data: { user },
@@ -55,17 +66,6 @@ export const handle: Handle = async ({ event, resolve }) => {
     expires_in: 0,
     token_type: 'bearer'
   } : null
-  
-  // Protected routes logic
-  const isAuthPage = url.pathname.startsWith('/login') || 
-                     url.pathname.startsWith('/register') || 
-                     url.pathname.startsWith('/activate') || 
-                     url.pathname.startsWith('/reset-password')
-  const isPublicPage = ['/', '/about', '/contact', '/test-users'].includes(url.pathname)
-  const isApiRoute = url.pathname.startsWith('/api/')
-  const isProcessRoute = url.pathname.startsWith('/recruitment/') || url.pathname.startsWith('/bench-sales/')
-  const isSelectProcessPage = url.pathname === '/select-process'
-  const isAccessDeniedPage = url.pathname === '/access-denied'
   
   log('Route analysis:', {
     isAuthPage,
